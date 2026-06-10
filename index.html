@@ -1,0 +1,1296 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Gestão de Imóveis</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<style>
+/* ── DESIGN TOKENS ─────────────────────────────────────────────────────────── */
+:root {
+  --c-bg0: #ffffff;
+  --c-bg1: #f7f7f5;
+  --c-bg2: #efefec;
+  --c-border: rgba(0,0,0,.10);
+  --c-border2: rgba(0,0,0,.18);
+  --c-text0: #111110;
+  --c-text1: #5c5c58;
+  --c-text2: #9b9b96;
+  --c-green: #1c9c52;   --c-green-bg: #e8f7ee;   --c-green-bd: rgba(28,156,82,.25);
+  --c-amber: #b06000;   --c-amber-bg: #fef3e2;   --c-amber-bd: rgba(176,96,0,.25);
+  --c-red:   #c0392b;   --c-red-bg:   #fdf0ee;   --c-red-bd:   rgba(192,57,43,.25);
+  --c-blue:  #1a5cb8;   --c-blue-bg:  #eaf2fd;   --c-blue-bd:  rgba(26,92,184,.25);
+  --c-disabled: #c8c8c4;
+  --r-sm: 8px; --r-md: 12px; --r-lg: 16px; --r-xl: 20px;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,.06);
+  --shadow-md: 0 2px 8px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.05);
+  --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --font-mono: 'SF Mono', 'Cascadia Code', Consolas, monospace;
+  --nav-h: 62px;
+  --hdr-h: 56px;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --c-bg0: #181816; --c-bg1: #222220; --c-bg2: #2c2c29;
+    --c-border: rgba(255,255,255,.09); --c-border2: rgba(255,255,255,.16);
+    --c-text0: #f0f0ec; --c-text1: #a0a09c; --c-text2: #6b6b67;
+    --c-green: #4ade80; --c-green-bg: rgba(74,222,128,.10); --c-green-bd: rgba(74,222,128,.22);
+    --c-amber: #fbbf24; --c-amber-bg: rgba(251,191,36,.10); --c-amber-bd: rgba(251,191,36,.22);
+    --c-red: #f87171;   --c-red-bg: rgba(248,113,113,.10);   --c-red-bd: rgba(248,113,113,.22);
+    --c-blue: #60a5fa;  --c-blue-bg: rgba(96,165,250,.10);   --c-blue-bd: rgba(96,165,250,.22);
+    --c-disabled: #444440;
+  }
+}
+
+/* ── RESET & BASE ──────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  font-family: var(--font); font-size: 14px; line-height: 1.5;
+  background: var(--c-bg1); color: var(--c-text0);
+  min-height: 100vh; overflow-x: hidden;
+}
+a { color: inherit; text-decoration: none; }
+button { font-family: inherit; cursor: pointer; }
+input, select, textarea { font-family: inherit; color: var(--c-text0); background: var(--c-bg0); }
+
+/* ── LAYOUT ────────────────────────────────────────────────────────────────── */
+#app { max-width: 720px; margin: 0 auto; padding: 0 16px calc(var(--nav-h) + 16px); }
+
+/* ── HEADER ────────────────────────────────────────────────────────────────── */
+.hdr {
+  position: sticky; top: 0; z-index: 100;
+  background: var(--c-bg0); border-bottom: 1px solid var(--c-border);
+  padding: 0 16px; height: var(--hdr-h);
+  display: flex; align-items: center; justify-content: space-between;
+  margin: 0 -16px 20px; box-shadow: var(--shadow-sm);
+}
+.hdr-brand { font-size: 16px; font-weight: 700; letter-spacing: -.2px; }
+.hdr-sub { font-size: 11px; color: var(--c-text2); margin-top: 1px; }
+.hdr-actions { display: flex; gap: 6px; }
+
+/* ── BOTTOM NAV ────────────────────────────────────────────────────────────── */
+.bnav {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
+  background: var(--c-bg0); border-top: 1px solid var(--c-border);
+  display: flex; height: var(--nav-h);
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+.bnav-item {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 3px; font-size: 10px; font-weight: 500;
+  color: var(--c-text2); background: none; border: none; padding: 8px 4px;
+  transition: color .15s;
+}
+.bnav-item i { font-size: 22px; }
+.bnav-item.active { color: var(--c-blue); }
+
+/* ── CARDS ─────────────────────────────────────────────────────────────────── */
+.card {
+  background: var(--c-bg0); border-radius: var(--r-lg);
+  border: 1px solid var(--c-border); padding: 16px;
+  margin-bottom: 12px; box-shadow: var(--shadow-sm);
+}
+.card-title {
+  font-size: 14px; font-weight: 700; margin-bottom: 14px;
+  display: flex; align-items: center; gap: 7px; color: var(--c-text0);
+}
+.card-title i { font-size: 17px; color: var(--c-text1); }
+
+/* ── BUTTONS ───────────────────────────────────────────────────────────────── */
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 14px; font-size: 13px; font-weight: 500;
+  border-radius: var(--r-sm); border: 1px solid var(--c-border2);
+  background: var(--c-bg0); color: var(--c-text0);
+  transition: background .12s, transform .1s; white-space: nowrap;
+}
+.btn:hover { background: var(--c-bg1); }
+.btn:active { transform: scale(.97); }
+.btn:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+.btn-sm { padding: 5px 10px; font-size: 12px; }
+.btn-xs { padding: 3px 8px; font-size: 11px; }
+.btn-primary { background: var(--c-blue-bg); color: var(--c-blue); border-color: var(--c-blue-bd); }
+.btn-success { background: var(--c-green-bg); color: var(--c-green); border-color: var(--c-green-bd); }
+.btn-danger  { background: var(--c-red-bg);   color: var(--c-red);   border-color: var(--c-red-bd); }
+.btn-amber   { background: var(--c-amber-bg); color: var(--c-amber); border-color: var(--c-amber-bd); }
+.btn-wpp { background: #e6f9ee; color: #1a7a3c; border-color: rgba(37,211,102,.3); }
+.btn-block { width: 100%; justify-content: center; }
+.btn-icon { padding: 6px; border-radius: var(--r-sm); }
+
+/* ── BADGES ────────────────────────────────────────────────────────────────── */
+.badge {
+  display: inline-flex; align-items: center; gap: 3px;
+  font-size: 11px; font-weight: 600; padding: 3px 8px;
+  border-radius: 99px; white-space: nowrap; border: 1px solid transparent;
+}
+.badge-ok      { background: var(--c-green-bg); color: var(--c-green); border-color: var(--c-green-bd); }
+.badge-warn    { background: var(--c-amber-bg); color: var(--c-amber); border-color: var(--c-amber-bd); }
+.badge-danger  { background: var(--c-red-bg);   color: var(--c-red);   border-color: var(--c-red-bd); }
+.badge-info    { background: var(--c-blue-bg);  color: var(--c-blue);  border-color: var(--c-blue-bd); }
+.badge-neutral { background: var(--c-bg2); color: var(--c-text1); border-color: var(--c-border); }
+.badge-off     { background: var(--c-bg2); color: var(--c-text2); border-color: var(--c-border); }
+
+/* ── METRICS ───────────────────────────────────────────────────────────────── */
+.metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(95px, 1fr)); gap: 8px; margin-bottom: 14px; }
+.met { background: var(--c-bg1); border-radius: var(--r-md); padding: 12px; border: 1px solid var(--c-border); }
+.met-label { font-size: 11px; color: var(--c-text2); margin-bottom: 4px; font-weight: 500; }
+.met-val { font-size: 20px; font-weight: 700; line-height: 1.2; }
+
+/* ── ROWS ──────────────────────────────────────────────────────────────────── */
+.row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 9px 0; border-bottom: 1px solid var(--c-border);
+  font-size: 13px; gap: 8px; flex-wrap: wrap;
+}
+.row:last-child { border-bottom: none; }
+.row-label { color: var(--c-text1); flex-shrink: 0; }
+.row-right { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+
+/* ── CHARGE ROW (with toggle) ──────────────────────────────────────────────── */
+.charge-row {
+  display: flex; align-items: center; padding: 10px 0;
+  border-bottom: 1px solid var(--c-border); gap: 8px; flex-wrap: wrap;
+}
+.charge-row:last-child { border-bottom: none; }
+.charge-toggle-btn {
+  flex-shrink: 0; width: 28px; height: 28px; border-radius: var(--r-sm);
+  border: 1px solid var(--c-border2); background: var(--c-bg0);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; color: var(--c-text1); transition: all .15s;
+}
+.charge-toggle-btn.on  { background: var(--c-green-bg); color: var(--c-green); border-color: var(--c-green-bd); }
+.charge-toggle-btn.off { background: var(--c-bg2); color: var(--c-text2); border-color: var(--c-border); }
+.charge-info { flex: 1; min-width: 0; }
+.charge-label { font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 6px; }
+.charge-label.disabled { color: var(--c-text2); text-decoration: line-through; }
+.charge-amount { font-size: 12px; color: var(--c-text2); margin-top: 1px; }
+.charge-amount.disabled { text-decoration: line-through; }
+.charge-actions { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+
+/* ── ALERTS ────────────────────────────────────────────────────────────────── */
+.alert {
+  padding: 10px 14px; border-radius: var(--r-sm); font-size: 13px;
+  display: flex; align-items: center; gap: 8px; margin-bottom: 8px;
+  border: 1px solid; font-weight: 500;
+}
+.alert-info    { background: var(--c-blue-bg);  color: var(--c-blue);  border-color: var(--c-blue-bd); }
+.alert-warn    { background: var(--c-amber-bg); color: var(--c-amber); border-color: var(--c-amber-bd); }
+.alert-danger  { background: var(--c-red-bg);   color: var(--c-red);   border-color: var(--c-red-bd); }
+.alert-success { background: var(--c-green-bg); color: var(--c-green); border-color: var(--c-green-bd); }
+
+/* ── APT TABS ──────────────────────────────────────────────────────────────── */
+.apt-tabs { display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; }
+.apt-tab {
+  padding: 6px 12px; font-size: 12px; font-weight: 600;
+  border: 1px solid var(--c-border); border-radius: var(--r-sm);
+  background: var(--c-bg0); color: var(--c-text1);
+}
+.apt-tab.active { background: var(--c-blue-bg); color: var(--c-blue); border-color: var(--c-blue-bd); }
+
+/* ── PROGRESS ──────────────────────────────────────────────────────────────── */
+.progress { height: 5px; background: var(--c-bg2); border-radius: 3px; overflow: hidden; margin-top: 8px; }
+.progress-fill { height: 100%; border-radius: 3px; transition: width .4s ease; }
+
+/* ── SEC LABEL ─────────────────────────────────────────────────────────────── */
+.sec { font-size: 11px; font-weight: 700; color: var(--c-text2); text-transform: uppercase; letter-spacing: .06em; margin: 16px 0 8px; }
+
+/* ── TOGGLE SWITCH ─────────────────────────────────────────────────────────── */
+.tgl { position: relative; display: inline-block; width: 42px; height: 24px; flex-shrink: 0; }
+.tgl input { opacity: 0; width: 0; height: 0; }
+.tgl-s {
+  position: absolute; inset: 0; background: var(--c-border2);
+  border-radius: 24px; cursor: pointer; transition: background .2s;
+}
+.tgl-s::before {
+  content: ''; position: absolute; height: 18px; width: 18px;
+  left: 3px; bottom: 3px; background: white; border-radius: 50%;
+  transition: transform .2s; box-shadow: 0 1px 3px rgba(0,0,0,.2);
+}
+.tgl input:checked + .tgl-s { background: var(--c-green); }
+.tgl input:checked + .tgl-s::before { transform: translateX(18px); }
+
+/* ── FORM ──────────────────────────────────────────────────────────────────── */
+.fg { margin-bottom: 14px; }
+.fl { display: block; font-size: 12px; color: var(--c-text1); margin-bottom: 5px; font-weight: 600; }
+.fi {
+  width: 100%; padding: 9px 12px; font-size: 14px;
+  background: var(--c-bg0); border: 1px solid var(--c-border2);
+  border-radius: var(--r-sm); color: var(--c-text0); outline: none;
+  transition: border-color .15s, box-shadow .15s;
+}
+.fi:focus { border-color: var(--c-blue); box-shadow: 0 0 0 3px var(--c-blue-bg); }
+textarea.fi { min-height: 80px; resize: vertical; }
+select.fi { cursor: pointer; }
+.fi-hint { font-size: 11px; color: var(--c-text2); margin-top: 4px; }
+
+/* ── MODAL ─────────────────────────────────────────────────────────────────── */
+.modal-bd {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,.55); z-index: 500;
+  align-items: flex-end; justify-content: center;
+  backdrop-filter: blur(2px);
+}
+.modal-bd.open { display: flex; }
+@media (min-width: 600px) { .modal-bd { align-items: center; } }
+.modal-box {
+  background: var(--c-bg0); width: 100%; max-width: 480px;
+  max-height: 92vh; overflow-y: auto;
+  border-radius: var(--r-xl) var(--r-xl) 0 0;
+  padding: 20px 20px calc(20px + env(safe-area-inset-bottom,0));
+  box-shadow: var(--shadow-md);
+}
+@media (min-width: 600px) { .modal-box { border-radius: var(--r-xl); } }
+.modal-handle { width: 36px; height: 4px; background: var(--c-border2); border-radius: 2px; margin: 0 auto 16px; }
+.modal-title { font-size: 17px; font-weight: 700; margin-bottom: 4px; }
+.modal-desc { font-size: 13px; color: var(--c-text1); margin-bottom: 18px; }
+.modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
+
+/* ── DOC LINK ──────────────────────────────────────────────────────────────── */
+.doc-link {
+  display: flex; align-items: center; gap: 10px; padding: 11px 13px;
+  border: 1px solid var(--c-border); border-radius: var(--r-sm);
+  margin-bottom: 8px; background: var(--c-bg0); transition: background .12s;
+}
+.doc-link:hover { background: var(--c-bg1); }
+.doc-link-name { flex: 1; font-size: 13px; font-weight: 500; }
+.doc-link-status { font-size: 11px; color: var(--c-text2); }
+.doc-missing { opacity: .5; }
+
+/* ── RESCISION BOX ─────────────────────────────────────────────────────────── */
+.res-box {
+  background: var(--c-red-bg); border: 1px solid var(--c-red-bd);
+  border-radius: var(--r-sm); padding: 14px; margin-top: 14px;
+}
+.res-title { font-size: 13px; font-weight: 700; color: var(--c-red); margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+.res-row { display: flex; justify-content: space-between; font-size: 13px; padding: 5px 0; border-bottom: 1px solid var(--c-red-bd); }
+.res-row:last-child { border-bottom: none; font-weight: 700; font-size: 14px; padding-top: 10px; }
+
+/* ── EXPORT PANEL ──────────────────────────────────────────────────────────── */
+.exp-panel {
+  background: var(--c-bg1); border-radius: var(--r-sm); padding: 14px;
+  margin-top: 14px; border: 1px solid var(--c-border);
+}
+.exp-title { font-size: 11px; font-weight: 700; color: var(--c-text2); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 10px; }
+.exp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.exp-grid .btn-block { grid-column: 1 / -1; }
+
+/* ── TABLE ─────────────────────────────────────────────────────────────────── */
+.tbl-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
+.tbl th {
+  font-size: 10px; font-weight: 700; color: var(--c-text2);
+  text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--c-border);
+  text-transform: uppercase; letter-spacing: .05em; white-space: nowrap;
+}
+.tbl td { padding: 8px; border-bottom: 1px solid var(--c-border); max-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tbl tr:last-child td { border-bottom: none; font-weight: 700; }
+
+/* ── HIST ITEM ─────────────────────────────────────────────────────────────── */
+.hist { display: flex; justify-content: space-between; align-items: flex-start; padding: 8px 0; border-bottom: 1px solid var(--c-border); gap: 8px; }
+.hist:last-child { border-bottom: none; }
+
+/* ── CODE BOX ──────────────────────────────────────────────────────────────── */
+.code-box {
+  background: var(--c-bg1); border-radius: var(--r-sm); padding: 14px;
+  font-family: var(--font-mono); font-size: 12px; color: var(--c-text1);
+  white-space: pre-wrap; line-height: 1.6; max-height: 340px; overflow-y: auto;
+  border: 1px solid var(--c-border); margin-top: 12px;
+}
+
+/* ── TOAST ─────────────────────────────────────────────────────────────────── */
+#toast {
+  position: fixed; bottom: calc(var(--nav-h) + 12px); left: 50%;
+  transform: translateX(-50%) translateY(8px);
+  background: var(--c-text0); color: var(--c-bg0);
+  padding: 10px 20px; border-radius: 99px; font-size: 13px; font-weight: 600;
+  z-index: 999; display: none; align-items: center; gap: 8px;
+  box-shadow: var(--shadow-md); white-space: nowrap;
+  opacity: 0; transition: opacity .2s, transform .2s;
+}
+#toast.show { display: flex; opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ── ACTIONS ROW ───────────────────────────────────────────────────────────── */
+.actions { display: flex; gap: 6px; margin-top: 14px; flex-wrap: wrap; }
+
+/* ── APT CARD HEADER ───────────────────────────────────────────────────────── */
+.apt-card-hdr { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; gap: 8px; }
+.apt-card-name { font-size: 16px; font-weight: 700; }
+.apt-card-meta { font-size: 13px; color: var(--c-text1); margin-top: 4px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.apt-card-badges { margin-top: 8px; display: flex; gap: 4px; flex-wrap: wrap; }
+
+/* ── SUPABASE STATUS ───────────────────────────────────────────────────────── */
+.db-dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; margin-right: 4px; }
+.db-dot.ok { background: var(--c-green); }
+.db-dot.err { background: var(--c-red); }
+.db-dot.pending { background: var(--c-amber); animation: pulse 1s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+</style>
+</head>
+<body>
+
+<!-- ── TOAST ── -->
+<div id="toast"><i class="ti ti-check"></i><span id="toast-msg">Salvo</span></div>
+
+<!-- ── MODALS ── -->
+
+<!-- Pagamento -->
+<div class="modal-bd" id="m-pag">
+  <div class="modal-box">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="m-pag-title">Registrar pagamento</div>
+    <div class="modal-desc" id="m-pag-desc"></div>
+    <div class="fg"><label class="fl">Valor (R$)</label><input class="fi" type="number" id="mp-val" step="0.01"></div>
+    <div class="fg"><label class="fl">Data</label><input class="fi" type="date" id="mp-data"></div>
+    <div class="fg"><label class="fl">Observação</label><input class="fi" type="text" id="mp-obs" placeholder="Pix, transferência..."></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="M.close('m-pag')">Cancelar</button>
+      <button class="btn btn-primary" onclick="A.confirmPag()"><i class="ti ti-check"></i> Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Reajuste IPCA -->
+<div class="modal-bd" id="m-reaj">
+  <div class="modal-box">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Reajuste anual — IPCA</div>
+    <div class="modal-desc" id="m-reaj-desc"></div>
+    <div class="fg">
+      <label class="fl">IPCA acumulado 12 meses (%)</label>
+      <input class="fi" type="number" id="mr-ipca" placeholder="Ex: 4.83" step="0.01" oninput="A.previewIPCA()">
+      <p id="mr-prev" class="fi-hint" style="min-height:18px"></p>
+      <p class="fi-hint">Consulte o índice atual em <strong>ibge.gov.br</strong></p>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="M.close('m-reaj')">Cancelar</button>
+      <button class="btn btn-amber" onclick="A.applyIPCA()"><i class="ti ti-trending-up"></i> Aplicar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Apartamento (criar / editar) -->
+<div class="modal-bd" id="m-apt">
+  <div class="modal-box">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="m-apt-title">Apartamento</div>
+    <div class="fg"><label class="fl">Nome do apartamento</label><input class="fi" type="text" id="fa-nome" placeholder="Apto 101 — Bairro"></div>
+    <div class="fg"><label class="fl">Inquilino</label><input class="fi" type="text" id="fa-inq"></div>
+    <div class="fg"><label class="fl">Telefone WhatsApp</label><input class="fi" type="tel" id="fa-tel" placeholder="5521999999999"></div>
+    <div class="fg"><label class="fl">Data início do contrato</label><input class="fi" type="date" id="fa-inicio"></div>
+    <div class="fg"><label class="fl">Duração do contrato (meses)</label><input class="fi" type="number" id="fa-duracao" placeholder="30" min="1"></div>
+    <div class="fg"><label class="fl">Aluguel (R$)</label><input class="fi" type="number" id="fa-alug" step="0.01"></div>
+    <div class="fg"><label class="fl">Condomínio mensal (R$)</label><input class="fi" type="number" id="fa-cond" step="0.01"></div>
+    <div class="fg"><label class="fl">IPTU mensal (R$)</label><input class="fi" type="number" id="fa-iptu" step="0.01"></div>
+    <div class="fg"><label class="fl">Seguro incêndio anual (R$)</label><input class="fi" type="number" id="fa-seguro" step="0.01"></div>
+    <div class="fg"><label class="fl">Taxa bombeiros anual (R$)</label><input class="fi" type="number" id="fa-bomb" step="0.01"></div>
+    <div class="fg"><label class="fl">Mês do reajuste (1 = Jan … 12 = Dez)</label><input class="fi" type="number" id="fa-mesreaj" min="1" max="12"></div>
+    <div class="fg"><label class="fl">Link contrato (Google Drive)</label><input class="fi" type="url" id="fa-contrato" placeholder="https://drive.google.com/..."></div>
+    <div class="fg"><label class="fl">Link laudo de vistoria (Google Drive)</label><input class="fi" type="url" id="fa-laudo" placeholder="https://drive.google.com/..."></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="M.close('m-apt')">Cancelar</button>
+      <button class="btn btn-primary" onclick="A.saveApt()"><i class="ti ti-device-floppy"></i> Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Rescisão -->
+<div class="modal-bd" id="m-rescisao">
+  <div class="modal-box">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Calcular rescisão</div>
+    <div class="modal-desc" id="m-res-desc"></div>
+    <div class="fg">
+      <label class="fl">Tipo de rescisão</label>
+      <select class="fi" id="mr-tipo" onchange="A.previewRes()">
+        <option value="inquilino">Solicitada pelo inquilino</option>
+        <option value="proprietario">Solicitada pelo proprietário</option>
+      </select>
+    </div>
+    <div class="fg"><label class="fl">Data de saída</label><input class="fi" type="date" id="mr-saida" oninput="A.previewRes()"></div>
+    <div class="fg"><label class="fl">Multa (meses de aluguel)</label><input class="fi" type="number" id="mr-multa" value="3" min="0" step="0.5" oninput="A.previewRes()"></div>
+    <div id="mr-prev-box"></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="M.close('m-rescisao')">Cancelar</button>
+      <button class="btn btn-danger" onclick="A.confirmRes()"><i class="ti ti-door-exit"></i> Registrar saída</button>
+    </div>
+  </div>
+</div>
+
+<!-- Novo inquilino -->
+<div class="modal-bd" id="m-entrada">
+  <div class="modal-box">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Novo inquilino</div>
+    <div class="modal-desc" id="m-ent-desc"></div>
+    <div class="fg"><label class="fl">Nome</label><input class="fi" type="text" id="me-nome"></div>
+    <div class="fg"><label class="fl">Telefone WhatsApp</label><input class="fi" type="tel" id="me-tel" placeholder="5521999999999"></div>
+    <div class="fg"><label class="fl">Data de entrada</label><input class="fi" type="date" id="me-data"></div>
+    <div class="fg"><label class="fl">Duração do contrato (meses)</label><input class="fi" type="number" id="me-dur" placeholder="30" min="1"></div>
+    <div class="fg"><label class="fl">Aluguel (R$)</label><input class="fi" type="number" id="me-alug" step="0.01"></div>
+    <div class="fg"><label class="fl">Link contrato (Google Drive)</label><input class="fi" type="url" id="me-contrato" placeholder="https://drive.google.com/..."></div>
+    <div class="fg"><label class="fl">Link laudo de vistoria (Google Drive)</label><input class="fi" type="url" id="me-laudo" placeholder="https://drive.google.com/..."></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="M.close('m-entrada')">Cancelar</button>
+      <button class="btn btn-success" onclick="A.confirmEntrada()"><i class="ti ti-user-plus"></i> Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Importar -->
+<div class="modal-bd" id="m-import">
+  <div class="modal-box">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="m-imp-title">Importar dados</div>
+    <div class="modal-desc" id="m-imp-desc"></div>
+    <div class="fg"><label class="fl">JSON exportado</label><textarea class="fi" id="mi-json" placeholder='{"apts":[...]} ou {"apt":{...}}'></textarea></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="M.close('m-import')">Cancelar</button>
+      <button class="btn btn-primary" onclick="A.importData()"><i class="ti ti-upload"></i> Importar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Supabase config -->
+<div class="modal-bd" id="m-supa">
+  <div class="modal-box">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Configurar Supabase</div>
+    <div class="modal-desc">Cole as credenciais do seu projeto para sincronizar dados em qualquer dispositivo.</div>
+    <div class="fg"><label class="fl">Project URL</label><input class="fi" type="url" id="supa-url" placeholder="https://xxxx.supabase.co"></div>
+    <div class="fg"><label class="fl">Anon Public Key</label><input class="fi" type="text" id="supa-key" placeholder="eyJ..."></div>
+    <p class="fi-hint" style="margin-top:-8px">Encontre em: Project Settings → API</p>
+    <div class="modal-actions">
+      <button class="btn" onclick="M.close('m-supa')">Cancelar</button>
+      <button class="btn btn-primary" onclick="A.saveSupaConfig()"><i class="ti ti-database"></i> Salvar e conectar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── APP SHELL ── -->
+<div id="app">
+  <div class="hdr">
+    <div>
+      <div class="hdr-brand">Gestão de Imóveis</div>
+      <div class="hdr-sub" id="hdr-date"></div>
+    </div>
+    <div class="hdr-actions">
+      <button class="btn btn-sm" id="db-status-btn" onclick="M.open('m-supa')" title="Configurar banco de dados">
+        <span class="db-dot pending" id="db-dot"></span><span id="db-label">DB</span>
+      </button>
+      <button class="btn btn-sm" onclick="P.exportAll()" title="Exportar todos os dados"><i class="ti ti-download"></i></button>
+      <button class="btn btn-sm" onclick="A.openImport('geral')" title="Importar dados"><i class="ti ti-upload"></i></button>
+      <button class="btn btn-sm btn-primary" onclick="A.openAptModal(null)"><i class="ti ti-plus"></i> Novo</button>
+    </div>
+  </div>
+  <div id="view-root"></div>
+</div>
+
+<!-- ── BOTTOM NAV ── -->
+<nav class="bnav">
+  <button class="bnav-item active" id="nav-dash" onclick="setView('dash')"><i class="ti ti-layout-dashboard"></i><span>Dashboard</span></button>
+  <button class="bnav-item" id="nav-apts" onclick="setView('apts')"><i class="ti ti-building"></i><span>Aptos</span></button>
+  <button class="bnav-item" id="nav-hist" onclick="setView('hist')"><i class="ti ti-history"></i><span>Histórico</span></button>
+  <button class="bnav-item" id="nav-rel"  onclick="setView('rel')"><i class="ti ti-chart-bar"></i><span>Relatórios</span></button>
+  <button class="bnav-item" id="nav-cnt"  onclick="setView('cnt')"><i class="ti ti-printer"></i><span>Contador</span></button>
+</nav>
+
+<script>
+'use strict';
+
+// ═══════════════════════════════════════════════════════════════════════════
+// CONSTANTS
+// ═══════════════════════════════════════════════════════════════════════════
+const MONTHS = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+const TODAY   = new Date();
+const CM      = TODAY.getMonth();
+const CY      = TODAY.getFullYear();
+const LS_KEY  = 'imoveis_v2';
+const SB_KEY  = 'imoveis_supa';
+
+// Charge definitions — single source of truth
+const CHARGES_MONTHLY = [
+  { id:'alug',   label:'Aluguel',       icon:'home'       },
+  { id:'cond',   label:'Condomínio',    icon:'building'   },
+  { id:'iptu',   label:'IPTU',          icon:'receipt'    },
+];
+const CHARGES_ANNUAL = [
+  { id:'seguro', label:'Seguro incêndio', icon:'flame'             },
+  { id:'bomb',   label:'Taxa bombeiros',  icon:'fire-extinguisher' },
+];
+const ALL_CHARGES = [...CHARGES_MONTHLY, ...CHARGES_ANNUAL];
+
+// ═══════════════════════════════════════════════════════════════════════════
+// STATE — single source of truth
+// ═══════════════════════════════════════════════════════════════════════════
+const State = {
+  view:    'dash',
+  aptTab:  0,
+  nextId:  6,
+  cntCfg:  { mes: CM, ano: CY, apts: {}, secs: { recMensal:true, encargosAnuais:true, ir:true, inadimplencia:true, reajustes:true, rescisoes:true } },
+  modal:   { pagCtx:null, reajCtx:null, resCtx:null, entCtx:null, editAptId:null, importMode:'geral' },
+  supa:    { url:'', key:'', connected:false },
+  apts: [
+    { id:1, nome:'Apto 101 — Tijuca',   inq:'Carlos Souza',    tel:'5521991111111', inicio:'2023-01-01', duracao:30, alug:2200, cond:450,  iptu:120, seguro:480,  bomb:160, mesReaj:1, contrato:'', laudo:'', historico:[], pags:{}, chargesOff:{} },
+    { id:2, nome:'Apto 202 — Barra',    inq:'Ana Lima',        tel:'5521992222222', inicio:'2022-03-01', duracao:24, alug:3500, cond:700,  iptu:200, seguro:620,  bomb:200, mesReaj:3, contrato:'', laudo:'', historico:[], pags:{}, chargesOff:{} },
+    { id:3, nome:'Apto 304 — Botafogo', inq:'Marcos Reis',     tel:'5521993333333', inicio:'2024-06-01', duracao:30, alug:4200, cond:900,  iptu:280, seguro:780,  bomb:240, mesReaj:6, contrato:'', laudo:'', historico:[], pags:{}, chargesOff:{} },
+    { id:4, nome:'Apto 15 — Ipanema',   inq:'Fernanda Costa',  tel:'5521994444444', inicio:'2023-07-01', duracao:36, alug:5800, cond:1200, iptu:380, seguro:1100, bomb:320, mesReaj:7, contrato:'', laudo:'', historico:[], pags:{}, chargesOff:{} },
+    { id:5, nome:'Apto 8 — Méier',      inq:'Roberto Alves',   tel:'5521995555555', inicio:'2024-02-01', duracao:24, alug:1800, cond:380,  iptu:90,  seguro:360,  bomb:130, mesReaj:2, contrato:'', laudo:'', historico:[], pags:{}, chargesOff:{} },
+  ]
+};
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PERSISTENCE LAYER
+// ═══════════════════════════════════════════════════════════════════════════
+const P = {
+  // ── localStorage ──
+  save() {
+    try { localStorage.setItem(LS_KEY, JSON.stringify({ apts: State.apts, nextId: State.nextId })); } catch(_) {}
+  },
+  load() {
+    try {
+      const r = localStorage.getItem(LS_KEY);
+      if (!r) return false;
+      const d = JSON.parse(r);
+      if (d?.apts) {
+        // Migrate: ensure chargesOff exists on every apt
+        d.apts.forEach(a => { if (!a.chargesOff) a.chargesOff = {}; });
+        State.apts = d.apts; State.nextId = d.nextId || 6; return true;
+      }
+    } catch(_) {}
+    return false;
+  },
+
+  // ── Supabase ──
+  loadSupaConfig() {
+    try {
+      const r = localStorage.getItem(SB_KEY);
+      if (r) { const d = JSON.parse(r); State.supa.url = d.url||''; State.supa.key = d.key||''; }
+    } catch(_) {}
+  },
+  saveSupaConfig(url, key) {
+    State.supa.url = url; State.supa.key = key;
+    localStorage.setItem(SB_KEY, JSON.stringify({ url, key }));
+  },
+  supaHeaders() {
+    return { 'Content-Type':'application/json', 'apikey': State.supa.key, 'Authorization': `Bearer ${State.supa.key}`, 'Prefer':'return=minimal' };
+  },
+  async supaLoad() {
+    if (!State.supa.url || !State.supa.key) return false;
+    try {
+      const r = await fetch(`${State.supa.url}/rest/v1/apartamentos?id=eq.1&select=dados`, { headers: P.supaHeaders() });
+      if (!r.ok) return false;
+      const rows = await r.json();
+      if (rows?.[0]?.dados?.apts) {
+        const d = rows[0].dados;
+        d.apts.forEach(a => { if (!a.chargesOff) a.chargesOff = {}; });
+        State.apts = d.apts; State.nextId = d.nextId || 6;
+        State.supa.connected = true; P.updateDbDot(); P.save(); return true;
+      }
+    } catch(_) {}
+    State.supa.connected = false; P.updateDbDot(); return false;
+  },
+  async supaSave() {
+    if (!State.supa.url || !State.supa.key) return;
+    const body = JSON.stringify({ id:1, dados: { apts: State.apts, nextId: State.nextId }, atualizado_em: new Date().toISOString() });
+    try {
+      await fetch(`${State.supa.url}/rest/v1/apartamentos`, {
+        method: 'POST',
+        headers: { ...P.supaHeaders(), 'Prefer':'resolution=merge-duplicates' },
+        body
+      });
+      State.supa.connected = true;
+    } catch(_) { State.supa.connected = false; }
+    P.updateDbDot();
+  },
+  async saveAll() { P.save(); await P.supaSave(); },
+  updateDbDot() {
+    const dot = document.getElementById('db-dot');
+    const lbl = document.getElementById('db-label');
+    if (!State.supa.url) { dot.className='db-dot err'; lbl.textContent='DB'; return; }
+    dot.className = State.supa.connected ? 'db-dot ok' : 'db-dot err';
+    lbl.textContent = State.supa.connected ? 'Online' : 'Offline';
+  },
+
+  // ── Export / Import ──
+  exportAll() {
+    const slug = `imoveis_${CY}-${String(CM+1).padStart(2,'0')}`;
+    P._dl({ apts: State.apts, nextId: State.nextId, exportType:'geral', exportedAt: TODAY.toISOString() }, slug);
+    toast('Exportação concluída');
+  },
+  exportOne(aptId) {
+    const apt = State.apts.find(a => a.id===aptId); if (!apt) return;
+    const slug = apt.nome.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+    P._dl({ apt, exportType:'individual', exportedAt: TODAY.toISOString() }, `imovel_${slug}_${CY}`);
+    toast(`Exportado: ${apt.nome}`);
+  },
+  copyOne(aptId) {
+    const apt = State.apts.find(a => a.id===aptId); if (!apt) return;
+    navigator.clipboard.writeText(JSON.stringify({ apt }, null, 2))
+      .then(() => toast('JSON copiado — cole para o agente'))
+      .catch(() => alert('Copie manualmente:\n\n' + JSON.stringify({ apt }, null, 2)));
+  },
+  _dl(data, name) {
+    const u = URL.createObjectURL(new Blob([JSON.stringify(data,null,2)], { type:'application/json' }));
+    Object.assign(document.createElement('a'), { href:u, download:`${name}.json` }).click();
+    URL.revokeObjectURL(u);
+  }
+};
+
+// ═══════════════════════════════════════════════════════════════════════════
+// FINANCE — pure functions, no side effects
+// ═══════════════════════════════════════════════════════════════════════════
+const F = {
+  brl:    v => 'R$\u00a0' + Number(v||0).toLocaleString('pt-BR', { minimumFractionDigits:2, maximumFractionDigits:2 }),
+  pagKey: (id, m, y) => (id==='seguro'||id==='bomb') ? `${id}-${y}` : `${id}-${y}-${String(m+1).padStart(2,'0')}`,
+  getPag: (apt, id, m, y) => apt.pags[F.pagKey(id,m,y)] || null,
+  setPag: (apt, id, m, y, d) => { apt.pags[F.pagKey(id,m,y)] = d; },
+  delPag: (apt, id, m, y) => { delete apt.pags[F.pagKey(id,m,y)]; },
+
+  isOff: (apt, id) => !!(apt.chargesOff?.[id]),
+
+  // Active charges only (not disabled by owner)
+  activeMonthly: apt => CHARGES_MONTHLY.filter(c => !F.isOff(apt, c.id)),
+  activeAnnual:  apt => CHARGES_ANNUAL.filter(c => !F.isOff(apt, c.id)),
+
+  expectedMonth: apt => F.activeMonthly(apt).reduce((s,c) => s + (apt[c.id]||0), 0),
+  receivedMonth: (apt, m, y) => F.activeMonthly(apt).reduce((s,c) => { const p=F.getPag(apt,c.id,m,y); return s+(p?+p.val:0); }, 0),
+
+  totalExpectedMonth: apts => apts.reduce((s,a) => s + F.expectedMonth(a), 0),
+  totalReceivedMonth: (apts,m,y) => apts.reduce((s,a) => s + F.receivedMonth(a,m,y), 0),
+
+  statusApt: apt => {
+    const pendM = F.activeMonthly(apt).filter(c => !F.getPag(apt,c.id,CM,CY)).length;
+    const pendA = F.activeAnnual(apt).filter(c => !F.getPag(apt,c.id,0,CY)).length;
+    const totalM = F.activeMonthly(apt).length;
+    const totalA = F.activeAnnual(apt).length;
+    if (pendM===0 && pendA===0) return 'ok';
+    if (pendM===totalM && pendA===totalA) return 'danger';
+    return 'warn';
+  },
+
+  calcRescisao: (apt, saida, multaMeses, tipo) => {
+    const sd = new Date(saida);
+    const diasMes = new Date(sd.getFullYear(), sd.getMonth()+1, 0).getDate();
+    const diasUsados = sd.getDate();
+    const alugProp = (apt.alug / diasMes) * diasUsados;
+    const multa = tipo==='inquilino' ? apt.alug * multaMeses : 0;
+    const enc = F.activeMonthly(apt)
+      .filter(c => c.id !== 'alug')
+      .reduce((s,c) => s + (F.getPag(apt,c.id,CM,CY) ? 0 : (apt[c.id]||0)), 0);
+    return { multa, alugProp, enc, total: multa+alugProp+enc, diasUsados, diasMes };
+  },
+
+  diasContrato: apt => {
+    if (!apt.inicio) return 0;
+    const f = new Date(apt.inicio); f.setMonth(f.getMonth() + (apt.duracao||30));
+    return Math.max(0, Math.ceil((f - TODAY) / 86400000));
+  },
+
+  buildWppMsg: (apt, m, y) => {
+    const lines = F.activeMonthly(apt).map(c => `• ${c.label}: ${F.brl(apt[c.id])}`).join('\n');
+    const total = F.expectedMonth(apt);
+    return encodeURIComponent(`Olá ${apt.inq.split(' ')[0]}! 👋\n\nCobrança ${MONTHS[m]}/${y} — ${apt.nome}:\n${lines}\n\nTotal: ${F.brl(total)}\n\nQualquer dúvida, estou à disposição!`);
+  }
+};
+
+// ═══════════════════════════════════════════════════════════════════════════
+// UI HELPERS — pure render helpers
+// ═══════════════════════════════════════════════════════════════════════════
+const H = {
+  badge: (label, cls) => `<span class="badge badge-${cls}">${label}</span>`,
+  statusBadge: s => s==='ok'
+    ? H.badge('<i class="ti ti-check"></i> Em dia','ok')
+    : s==='warn' ? H.badge('Parcial','warn') : H.badge('Pendente','danger'),
+  dot: s => s==='ok' ? '🟢' : s==='warn' ? '🟡' : '🔴',
+  sec: t => `<div class="sec">${t}</div>`,
+  docLink: (label, url, icon) => url
+    ? `<a href="${url}" target="_blank" rel="noopener" class="doc-link"><i class="ti ti-${icon}" style="font-size:18px;color:var(--c-blue)"></i><span class="doc-link-name">${label}</span><span class="doc-link-status">Abrir <i class="ti ti-external-link" style="font-size:11px"></i></span></a>`
+    : `<div class="doc-link doc-missing"><i class="ti ti-${icon}" style="font-size:18px"></i><span class="doc-link-name">${label}</span><span class="doc-link-status">Não cadastrado</span></div>`,
+};
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ACTIONS — business logic + state mutations
+// ═══════════════════════════════════════════════════════════════════════════
+const A = {
+  // ── Toggle charge on/off ──
+  async toggleCharge(aptId, chargeId) {
+    const apt = State.apts.find(a => a.id===aptId);
+    if (!apt.chargesOff) apt.chargesOff = {};
+    apt.chargesOff[chargeId] = !apt.chargesOff[chargeId];
+    await P.saveAll(); render();
+  },
+
+  // ── Payments ──
+  openPag(aptId, chargeId, val, anual) {
+    const apt = State.apts.find(a => a.id===aptId);
+    const c = ALL_CHARGES.find(x => x.id===chargeId);
+    State.modal.pagCtx = { aptId, chargeId, anual:!!anual };
+    document.getElementById('m-pag-title').textContent = c?.label || chargeId;
+    document.getElementById('m-pag-desc').textContent  = apt.nome;
+    document.getElementById('mp-val').value  = val;
+    document.getElementById('mp-data').value = TODAY.toISOString().split('T')[0];
+    document.getElementById('mp-obs').value  = '';
+    M.open('m-pag');
+  },
+  async confirmPag() {
+    const { aptId, chargeId, anual } = State.modal.pagCtx;
+    const apt = State.apts.find(a => a.id===aptId);
+    F.setPag(apt, chargeId, anual?0:CM, CY, {
+      val:  document.getElementById('mp-val').value,
+      data: document.getElementById('mp-data').value,
+      obs:  document.getElementById('mp-obs').value,
+    });
+    M.close('m-pag'); await P.saveAll(); render();
+  },
+  async undoPag(aptId, chargeId, anual) {
+    F.delPag(State.apts.find(a=>a.id===aptId), chargeId, anual?0:CM, CY);
+    await P.saveAll(); render();
+  },
+
+  // ── IPCA ──
+  openIPCA(aptId) {
+    const apt = State.apts.find(a => a.id===aptId);
+    State.modal.reajCtx = { aptId };
+    document.getElementById('m-reaj-desc').textContent = `${apt.nome} — aluguel atual: ${F.brl(apt.alug)}`;
+    document.getElementById('mr-ipca').value = '';
+    document.getElementById('mr-prev').textContent = '';
+    M.open('m-reaj');
+  },
+  previewIPCA() {
+    const ctx = State.modal.reajCtx; if (!ctx) return;
+    const apt = State.apts.find(a => a.id===ctx.aptId);
+    const v = parseFloat(document.getElementById('mr-ipca').value);
+    const el = document.getElementById('mr-prev');
+    if (isNaN(v)) { el.textContent=''; return; }
+    const novo = apt.alug * (1+v/100);
+    el.textContent = `Novo aluguel: ${F.brl(Math.round(novo*100)/100)} (+${F.brl(Math.round((novo-apt.alug)*100)/100)})`;
+  },
+  async applyIPCA() {
+    const apt = State.apts.find(a => a.id===State.modal.reajCtx.aptId);
+    const v = parseFloat(document.getElementById('mr-ipca').value); if (isNaN(v)) return;
+    apt.alug = Math.round(apt.alug * (1+v/100) * 100) / 100;
+    apt.pags[`reajuste-${CY}`] = { val:0, data: TODAY.toISOString().split('T')[0], obs:`IPCA ${v}%` };
+    M.close('m-reaj'); await P.saveAll(); render();
+  },
+
+  // ── Apt CRUD ──
+  openAptModal(id) {
+    State.modal.editAptId = id;
+    document.getElementById('m-apt-title').textContent = id ? 'Editar apartamento' : 'Novo apartamento';
+    const f = id ? State.apts.find(a=>a.id===id) : {};
+    const set = (el,v) => { const e=document.getElementById(el); if(e) e.value=v??''; };
+    set('fa-nome',f.nome); set('fa-inq',f.inq); set('fa-tel',f.tel);
+    set('fa-inicio',f.inicio); set('fa-duracao',f.duracao);
+    set('fa-alug',f.alug); set('fa-cond',f.cond); set('fa-iptu',f.iptu);
+    set('fa-seguro',f.seguro); set('fa-bomb',f.bomb); set('fa-mesreaj',f.mesReaj);
+    set('fa-contrato',f.contrato); set('fa-laudo',f.laudo);
+    M.open('m-apt');
+  },
+  async saveApt() {
+    const g = id => document.getElementById(id)?.value;
+    const nome=g('fa-nome'), inq=g('fa-inq');
+    if (!nome||!inq) { alert('Nome e inquilino são obrigatórios.'); return; }
+    const data = {
+      nome, inq, tel:g('fa-tel'), inicio:g('fa-inicio'),
+      duracao:+g('fa-duracao')||30, alug:+g('fa-alug')||0,
+      cond:+g('fa-cond')||0, iptu:+g('fa-iptu')||0,
+      seguro:+g('fa-seguro')||0, bomb:+g('fa-bomb')||0,
+      mesReaj:+g('fa-mesreaj')||1,
+      contrato:g('fa-contrato'), laudo:g('fa-laudo'),
+    };
+    if (State.modal.editAptId) {
+      Object.assign(State.apts.find(a=>a.id===State.modal.editAptId), data);
+    } else {
+      State.apts.push({ id:State.nextId++, pags:{}, historico:[], chargesOff:{}, ...data });
+    }
+    M.close('m-apt'); await P.saveAll(); render();
+  },
+
+  // ── Rescisão ──
+  openRes(aptId) {
+    const apt = State.apts.find(a=>a.id===aptId);
+    State.modal.resCtx = { aptId };
+    document.getElementById('m-res-desc').textContent = `${apt.nome} — ${apt.inq}`;
+    document.getElementById('mr-saida').value = TODAY.toISOString().split('T')[0];
+    document.getElementById('mr-multa').value = 3;
+    document.getElementById('mr-tipo').value  = 'inquilino';
+    document.getElementById('mr-prev-box').innerHTML = '';
+    M.open('m-rescisao');
+  },
+  previewRes() {
+    const ctx = State.modal.resCtx; if (!ctx) return;
+    const apt   = State.apts.find(a=>a.id===ctx.aptId);
+    const saida = document.getElementById('mr-saida').value; if (!saida) return;
+    const tipo  = document.getElementById('mr-tipo').value;
+    const multa = parseFloat(document.getElementById('mr-multa').value)||0;
+    const r = F.calcRescisao(apt, saida, multa, tipo);
+    document.getElementById('mr-prev-box').innerHTML = `
+      <div class="res-box">
+        <div class="res-title"><i class="ti ti-calculator"></i>Resumo da rescisão</div>
+        ${tipo==='inquilino'?`<div class="res-row"><span>Multa (${multa}x aluguel)</span><span>${F.brl(r.multa)}</span></div>`:''}
+        <div class="res-row"><span>Aluguel proporcional (${r.diasUsados}/${r.diasMes} dias)</span><span>${F.brl(Math.round(r.alugProp*100)/100)}</span></div>
+        <div class="res-row"><span>Encargos em aberto</span><span>${F.brl(r.enc)}</span></div>
+        <div class="res-row"><span>Total a cobrar</span><span>${F.brl(Math.round(r.total*100)/100)}</span></div>
+      </div>`;
+  },
+  async confirmRes() {
+    const ctx = State.modal.resCtx;
+    const apt = State.apts.find(a=>a.id===ctx.aptId);
+    const saida = document.getElementById('mr-saida').value;
+    const tipo  = document.getElementById('mr-tipo').value;
+    const multa = parseFloat(document.getElementById('mr-multa').value)||0;
+    const r = F.calcRescisao(apt, saida, multa, tipo);
+    if (!apt.historico) apt.historico=[];
+    apt.historico.push({ tipo:'saida', data:saida, inq:apt.inq, tel:apt.tel, calcRes:r, tipoRes:tipo, multaMeses:multa });
+    apt.inq='(Vago)'; apt.tel=''; apt.contrato=''; apt.laudo='';
+    M.close('m-rescisao'); await P.saveAll(); toast('Saída registrada'); render();
+  },
+
+  // ── Entrada ──
+  openEntrada(aptId) {
+    const apt = State.apts.find(a=>a.id===aptId);
+    State.modal.entCtx = { aptId };
+    document.getElementById('m-ent-desc').textContent = apt.nome;
+    document.getElementById('me-data').value  = TODAY.toISOString().split('T')[0];
+    document.getElementById('me-alug').value  = apt.alug;
+    ['me-nome','me-tel','me-dur','me-contrato','me-laudo'].forEach(id => document.getElementById(id).value='');
+    M.open('m-entrada');
+  },
+  async confirmEntrada() {
+    const ctx = State.modal.entCtx;
+    const apt = State.apts.find(a=>a.id===ctx.aptId);
+    const nome = document.getElementById('me-nome').value;
+    if (!nome) { alert('Informe o nome do inquilino.'); return; }
+    if (!apt.historico) apt.historico=[];
+    apt.historico.push({ tipo:'entrada', data: document.getElementById('me-data').value, inq:nome });
+    Object.assign(apt, {
+      inq: nome, tel: document.getElementById('me-tel').value,
+      inicio: document.getElementById('me-data').value,
+      duracao: +document.getElementById('me-dur').value||30,
+      alug: +document.getElementById('me-alug').value||apt.alug,
+      contrato: document.getElementById('me-contrato').value,
+      laudo: document.getElementById('me-laudo').value,
+    });
+    M.close('m-entrada'); await P.saveAll(); toast('Entrada registrada'); render();
+  },
+
+  // ── Import ──
+  openImport(mode, aptId) {
+    State.modal.importMode = mode; State.modal.importAptId = aptId||null;
+    document.getElementById('m-imp-title').textContent = mode==='individual' ? 'Importar apartamento' : 'Importar todos os dados';
+    document.getElementById('m-imp-desc').textContent  = mode==='individual'
+      ? 'Cole o JSON de um único apartamento exportado anteriormente.'
+      : 'Cole o JSON completo. Todos os apartamentos serão substituídos.';
+    document.getElementById('mi-json').value = '';
+    M.open('m-import');
+  },
+  async importData() {
+    try {
+      const raw = JSON.parse(document.getElementById('mi-json').value);
+      if (State.modal.importMode==='individual') {
+        const apt = raw.apt||raw;
+        if (!apt.chargesOff) apt.chargesOff={};
+        const idx = State.apts.findIndex(a=>a.id===apt.id);
+        if (idx>=0) { State.apts[idx]=apt; toast(`${apt.nome} importado`); }
+        else { State.apts.push(apt); toast('Apartamento adicionado'); }
+      } else {
+        if (raw.apts) {
+          raw.apts.forEach(a=>{if(!a.chargesOff)a.chargesOff={};});
+          State.apts=raw.apts; State.nextId=raw.nextId||State.nextId;
+          toast('Dados importados');
+        }
+      }
+      M.close('m-import'); await P.saveAll(); render();
+    } catch(_) { alert('JSON inválido. Verifique o formato.'); }
+  },
+
+  // ── Supabase ──
+  async saveSupaConfig() {
+    const url = document.getElementById('supa-url').value.trim().replace(/\/$/,'');
+    const key = document.getElementById('supa-key').value.trim();
+    if (!url||!key) { alert('Preencha URL e chave.'); return; }
+    P.saveSupaConfig(url, key);
+    M.close('m-supa');
+    toast('Conectando ao Supabase…');
+    const ok = await P.supaLoad();
+    toast(ok ? 'Supabase conectado!' : 'Erro na conexão — verifique as credenciais.');
+    render();
+  },
+
+  // ── Contador ──
+  setCntSec: (k,v) => { State.cntCfg.secs[k]=v; render(); },
+  setCntApt: (id,v) => { State.cntCfg.apts[id]=v; render(); },
+  buildRelText() {
+    const { mes, ano, apts:aCfg, secs } = State.cntCfg;
+    const inc = State.apts.filter(a => aCfg[a.id]!==false);
+    let t = `RELATÓRIO DE IMÓVEIS\nProprietário: —\nPeríodo: ${MONTHS[mes]} / ${ano}\nGerado: ${TODAY.toLocaleDateString('pt-BR')}\n${'─'.repeat(46)}\n\n`;
+    if (secs.recMensal) {
+      t += `RECEBIMENTOS MENSAIS — ${MONTHS[mes].toUpperCase()} ${ano}\n${'─'.repeat(46)}\n`;
+      let tot=0;
+      inc.forEach(a => {
+        t += `\n${a.nome} — ${a.inq}\n`;
+        F.activeMonthly(a).forEach(c => {
+          const p=F.getPag(a,c.id,mes,ano);
+          t += `  ${c.label.padEnd(14)}: ${p?F.brl(p.val):'Pendente'}\n`;
+          if(p) tot+=+p.val;
+        });
+      });
+      t += `\nTOTAL RECEBIDO: ${F.brl(tot)}\n\n`;
+    }
+    if (secs.encargosAnuais) {
+      t += `ENCARGOS ANUAIS — ${ano}\n${'─'.repeat(46)}\n`;
+      inc.forEach(a => {
+        t += `\n${a.nome}\n`;
+        F.activeAnnual(a).forEach(c => {
+          const p=F.getPag(a,c.id,0,ano);
+          t += `  ${c.label.padEnd(18)}: ${p?F.brl(p.val)+' ('+p.data+')':'Pendente'}\n`;
+        });
+      });
+      t += '\n';
+    }
+    if (secs.ir) {
+      t += `RESUMO IR — ${ano}\n${'─'.repeat(46)}\n`;
+      let tot=0;
+      inc.forEach(a => { let s=0; Object.values(a.pags).forEach(p=>s+=+p.val); tot+=s; t+=`  ${a.nome.padEnd(28)} ${F.brl(s)}\n`; });
+      t += `\n  TOTAL ANUAL: ${F.brl(tot)}\n\n`;
+    }
+    if (secs.inadimplencia) {
+      t += `INADIMPLÊNCIA — ${MONTHS[mes].toUpperCase()} ${ano}\n${'─'.repeat(46)}\n`;
+      const inad = inc.filter(a => F.activeMonthly(a).some(c=>!F.getPag(a,c.id,mes,ano)));
+      t += inad.length ? inad.map(a=>`  ${a.nome} — ${a.inq}`).join('\n')+'\n\n' : '  Nenhuma inadimplência.\n\n';
+    }
+    if (secs.rescisoes) {
+      t += `RESCISÕES\n${'─'.repeat(46)}\n`;
+      let found=false;
+      inc.forEach(a => (a.historico||[]).filter(h=>h.tipo==='saida').forEach(h => { found=true; t+=`  ${a.nome} — ${h.inq} (saída: ${h.data})\n  Total: ${F.brl(Math.round(h.calcRes.total*100)/100)}\n`; }));
+      if (!found) t+='  Nenhuma rescisão registrada.\n';
+      t += '\n';
+    }
+    return t;
+  }
+};
+
+// ═══════════════════════════════════════════════════════════════════════════
+// MODAL MANAGER
+// ═══════════════════════════════════════════════════════════════════════════
+const M = {
+  open(id) {
+    const el = document.getElementById(id); if (!el) return;
+    el.classList.add('open');
+    const handler = e => { if (e.target===el) { M.close(id); el.removeEventListener('click',handler); } };
+    el.addEventListener('click', handler);
+  },
+  close(id) { document.getElementById(id)?.classList.remove('open'); render(); }
+};
+
+// ═══════════════════════════════════════════════════════════════════════════
+// VIEWS — pure render functions
+// ═══════════════════════════════════════════════════════════════════════════
+const V = {
+  dash() {
+    const rec  = F.totalReceivedMonth(State.apts, CM, CY);
+    const esp  = F.totalExpectedMonth(State.apts);
+    const pct  = esp>0 ? Math.round(rec/esp*100) : 0;
+    const byS  = { ok:0, warn:0, danger:0 };
+    State.apts.forEach(a => byS[F.statusApt(a)]++);
+    const venc = State.apts.map(a=>({nome:a.nome,dias:F.diasContrato(a)})).filter(x=>x.dias>0&&x.dias<60).sort((a,b)=>a.dias-b.dias);
+
+    const alerts = [];
+    State.apts.forEach(a => {
+      if ((a.mesReaj-1)===CM && !a.pags[`reajuste-${CY}`])
+        alerts.push({ cls:'alert-info', icon:'trending-up', msg:`<strong>${a.nome}</strong> — Reajuste IPCA pendente`, idx:State.apts.indexOf(a) });
+      F.activeAnnual(a).forEach(c => {
+        if (!F.getPag(a,c.id,0,CY))
+          alerts.push({ cls:'alert-warn', icon:'alert-circle', msg:`<strong>${a.nome}</strong> — ${c.label} ${CY} em aberto` });
+      });
+    });
+
+    return `
+      <div class="metrics">
+        <div class="met"><div class="met-label">Aptos</div><div class="met-val">${State.apts.length}</div></div>
+        <div class="met"><div class="met-label">Em dia</div><div class="met-val" style="color:var(--c-green)">${byS.ok}</div></div>
+        <div class="met"><div class="met-label">Parciais</div><div class="met-val" style="color:var(--c-amber)">${byS.warn}</div></div>
+        <div class="met"><div class="met-label">Pendentes</div><div class="met-val" style="color:var(--c-red)">${byS.danger}</div></div>
+        <div class="met"><div class="met-label">Recebido</div><div class="met-val" style="color:var(--c-blue);font-size:15px">${F.brl(rec)}</div></div>
+        <div class="met"><div class="met-label">A receber</div><div class="met-val" style="font-size:15px">${F.brl(esp-rec)}</div></div>
+      </div>
+      <div class="card" style="margin-bottom:14px">
+        <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px">
+          <span style="color:var(--c-text1)">Recebimento — ${MONTHS[CM]}</span>
+          <span style="font-weight:700">${pct}%</span>
+        </div>
+        <div class="progress"><div class="progress-fill" style="width:${pct}%;background:${pct===100?'var(--c-green)':pct>50?'var(--c-amber)':'var(--c-red)'}"></div></div>
+        <div style="font-size:12px;color:var(--c-text2);margin-top:6px">${F.brl(rec)} de ${F.brl(esp)}</div>
+      </div>
+      ${alerts.map(al=>`<div class="alert ${al.cls}"><i class="ti ti-${al.icon}"></i><span style="flex:1">${al.msg}</span>${al.idx!==undefined?`<button class="btn btn-xs" onclick="State.aptTab=${al.idx};setView('apts')">Ver</button>`:''}</div>`).join('')}
+      ${venc.length?`<div class="card"><div class="card-title"><i class="ti ti-calendar-event"></i>Contratos vencendo</div>${venc.map(x=>`<div class="row"><span>${x.nome}</span>${H.badge(x.dias+' dias','warn')}</div>`).join('')}</div>`:''}
+      ${H.sec('Status por apartamento')}
+      ${State.apts.map((a,i)=>`
+        <div class="card" style="padding:12px 14px;margin-bottom:8px;cursor:pointer" onclick="State.aptTab=${i};setView('apts')">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div>
+              <div style="font-weight:700">${a.nome}</div>
+              <div style="font-size:12px;color:var(--c-text1);margin-top:2px">${a.inq}</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px">${H.statusBadge(F.statusApt(a))}<i class="ti ti-chevron-right" style="color:var(--c-text2)"></i></div>
+          </div>
+        </div>`).join('')}`;
+  },
+
+  apts() {
+    const tabs = `<div class="apt-tabs">${State.apts.map((a,i)=>
+      `<button class="apt-tab${State.aptTab===i?' active':''}" onclick="State.aptTab=${i};render()">${H.dot(F.statusApt(a))} ${a.nome.split(' — ')[0]}</button>`
+    ).join('')}</div>`;
+
+    const apt = State.apts[State.aptTab]; if (!apt) return tabs;
+    const isVago     = apt.inq==='(Vago)';
+    const isReajMes  = (apt.mesReaj-1)===CM;
+    const jaReaj     = !!apt.pags[`reajuste-${CY}`];
+    const diasR      = F.diasContrato(apt);
+
+    // ── Charge row renderer ──
+    const chargeRow = (c, anual=false) => {
+      const off = F.isOff(apt, c.id);
+      const p   = anual ? F.getPag(apt,c.id,0,CY) : F.getPag(apt,c.id,CM,CY);
+      const val = apt[c.id] || 0;
+
+      const toggleBtn = `<button
+        class="charge-toggle-btn ${off?'off':'on'}"
+        onclick="A.toggleCharge(${apt.id},'${c.id}')"
+        title="${off?'Ativar cobrança':'Desativar cobrança'}"
+        aria-label="${off?'Ativar':'Desativar'} ${c.label}"
+      ><i class="ti ti-${off?'toggle-left':'toggle-right'}"></i></button>`;
+
+      const labelHtml = `<div class="charge-label${off?' disabled':''}">
+        <i class="ti ti-${c.icon}" style="font-size:15px;color:var(--c-text2)"></i>
+        ${c.label}${anual?` ${H.badge('anual','info')}`:''} 
+        ${off?H.badge('Desativado','off'):''}
+      </div>
+      <div class="charge-amount${off?' disabled':''}">${F.brl(val)}</div>`;
+
+      let actionsHtml = '';
+      if (!off) {
+        const badge = p
+          ? H.badge(`<i class="ti ti-check"></i> Pago${p.data?' · '+p.data:''}`, 'ok')
+          : H.badge('Pendente','warn');
+        const btn = p
+          ? `<button class="btn btn-xs" onclick="A.undoPag(${apt.id},'${c.id}',${anual})">Desfazer</button>`
+          : `<button class="btn btn-xs btn-primary" onclick="A.openPag(${apt.id},'${c.id}',${val},${anual})">Marcar pago</button>`;
+        actionsHtml = `${badge}${btn}`;
+      }
+
+      return `<div class="charge-row">
+        ${toggleBtn}
+        <div class="charge-info">${labelHtml}</div>
+        <div class="charge-actions">${actionsHtml}</div>
+      </div>`;
+    };
+
+    const wpp = F.buildWppMsg(apt, CM, CY);
+
+    const exportPanel = `
+      <div class="exp-panel">
+        <div class="exp-title"><i class="ti ti-download" style="font-size:12px;vertical-align:-1px;margin-right:4px"></i>Exportar este apartamento</div>
+        <div class="exp-grid">
+          <button class="btn btn-sm btn-primary" onclick="P.exportOne(${apt.id})"><i class="ti ti-file-download"></i> Baixar JSON</button>
+          <button class="btn btn-sm" onclick="P.copyOne(${apt.id})"><i class="ti ti-copy"></i> Copiar p/ agente</button>
+          <button class="btn btn-sm btn-block" onclick="A.openImport('individual',${apt.id})"><i class="ti ti-file-upload"></i> Importar dados deste apartamento</button>
+        </div>
+      </div>`;
+
+    return tabs + `<div class="card">
+      <div class="apt-card-hdr">
+        <div>
+          <div class="apt-card-name">${apt.nome}</div>
+          <div class="apt-card-meta">
+            <i class="ti ti-user" style="font-size:13px"></i>${apt.inq}
+            ${apt.tel?`<span>·</span><i class="ti ti-phone" style="font-size:13px"></i>${apt.tel}`:''}
+          </div>
+          <div class="apt-card-badges">
+            ${isReajMes&&!jaReaj?H.badge('Mês do reajuste IPCA','ok'):''}
+            ${diasR>0&&diasR<60?H.badge(`Contrato vence em ${diasR} dias`,'warn'):''}
+            ${isVago?H.badge('Vago','neutral'):''}
+          </div>
+        </div>
+        <button class="btn btn-sm" onclick="A.openAptModal(${apt.id})"><i class="ti ti-edit"></i> Editar</button>
+      </div>
+
+      ${isVago ? `
+        <div class="alert alert-info"><i class="ti ti-door-enter"></i>Apartamento vago — registre o novo inquilino</div>
+        <div style="margin-top:10px"><button class="btn btn-success" onclick="A.openEntrada(${apt.id})"><i class="ti ti-user-plus"></i> Registrar entrada</button></div>
+        ${exportPanel}
+      ` : `
+        ${H.sec(`Cobranças mensais — ${MONTHS[CM]} ${CY}`)}
+        ${CHARGES_MONTHLY.map(c => chargeRow(c, false)).join('')}
+        ${H.sec(`Cobranças anuais — ${CY}`)}
+        ${CHARGES_ANNUAL.map(c => chargeRow(c, true)).join('')}
+        ${H.sec('Documentos')}
+        ${H.docLink('Contrato de aluguel', apt.contrato, 'file-text')}
+        ${H.docLink('Laudo de vistoria',   apt.laudo,    'clipboard-check')}
+        <div class="actions">
+          <a href="https://wa.me/${apt.tel}?text=${wpp}" target="_blank" rel="noopener" class="btn btn-wpp btn-sm"><i class="ti ti-brand-whatsapp"></i> Cobrar</a>
+          ${isReajMes&&!jaReaj?`<button class="btn btn-sm btn-amber" onclick="A.openIPCA(${apt.id})"><i class="ti ti-trending-up"></i> Reajuste IPCA</button>`:''}
+          ${jaReaj?H.badge('IPCA aplicado ✓','ok'):''}
+          <button class="btn btn-sm btn-danger"  onclick="A.openRes(${apt.id})"><i class="ti ti-door-exit"></i> Saída</button>
+          <button class="btn btn-sm btn-success" onclick="A.openEntrada(${apt.id})"><i class="ti ti-user-plus"></i> lino</button>
+        </div>
+        ${exportPanel}
+      `}
+    </div>`;
+  },
+
+  hist() {
+    const tabs = `<div class="apt-tabs">${State.apts.map((a,i)=>
+      `<button class="apt-tab${State.aptTab===i?' active':''}" onclick="State.aptTab=${i};render()">${a.nome.split(' — ')[0]}</button>`
+    ).join('')}</div>`;
+    const apt = State.apts[State.aptTab]; if (!apt) return tabs;
+    const tl = Object.fromEntries([...ALL_CHARGES.map(c=>[c.id,c.label]),['reajuste','Reajuste IPCA']]);
+    const pags = Object.entries(apt.pags).sort((a,b)=>b[0].localeCompare(a[0]));
+    const hist = (apt.historico||[]).slice().reverse();
+    return tabs + `<div class="card">
+      <div class="card-title"><i class="ti ti-history"></i>${apt.nome} — Histórico</div>
+      ${H.sec('Movimentação de inquilinos')}
+      ${hist.length ? hist.map(h => h.tipo==='entrada'
+        ? `<div class="hist"><div><div style="color:var(--c-green);font-weight:700"><i class="ti ti-door-enter"></i> Entrada — ${h.inq}</div></div><span style="color:var(--c-text2);font-size:12px">${h.data}</span></div>`
+        : `<div class="hist"><div><div style="color:var(--c-red);font-weight:700"><i class="ti ti-door-exit"></i> Saída — ${h.inq}</div><div style="font-size:12px;color:var(--c-text1);margin-top:2px">Rescisão: ${F.brl(Math.round(h.calcRes.total*100)/100)} · ${h.tipoRes==='inquilino'?'Pelo inquilino':'Pelo proprietário'}</div></div><span style="color:var(--c-text2);font-size:12px">${h.data}</span></div>`
+      ).join('') : `<p style="font-size:13px;color:var(--c-text2)">Nenhum registro.</p>`}
+      ${H.sec('Pagamentos registrados')}
+      ${pags.length ? pags.map(([k,v]) => {
+        const pts=k.split('-'), tipo=pts[0];
+        const periodo = pts.length===3 ? `${MONTHS[parseInt(pts[2])-1]} ${pts[1]}` : pts[1];
+        return `<div class="hist"><span style="color:var(--c-text1)">${tl[tipo]||tipo} — ${periodo}</span><div style="display:flex;gap:10px;align-items:center"><span style="font-weight:700">${+v.val>0?F.brl(v.val):'—'}</span><span style="font-size:11px;color:var(--c-text2)">${v.data||''}${v.obs?' · '+v.obs:''}</span></div></div>`;
+      }).join('') : `<p style="font-size:13px;color:var(--c-text2)">Nenhum pagamento registrado.</p>`}
+    </div>`;
+  },
+
+  rel() {
+    const rec  = F.totalReceivedMonth(State.apts, CM, CY);
+    const esp  = F.totalExpectedMonth(State.apts);
+    const inad = State.apts.filter(a => F.activeMonthly(a).some(c=>!F.getPag(a,c.id,CM,CY))).length;
+    return `
+      <div class="metrics" style="margin-bottom:14px">
+        <div class="met"><div class="met-label">Esperado</div><div class="met-val" style="font-size:15px">${F.brl(esp)}</div></div>
+        <div class="met"><div class="met-label">Recebido</div><div class="met-val" style="color:var(--c-green);font-size:15px">${F.brl(rec)}</div></div>
+        <div class="met"><div class="met-label">Pendente</div><div class="met-val" style="color:var(--c-red);font-size:15px">${F.brl(esp-rec)}</div></div>
+        <div class="met"><div class="met-label">Inadimpl.</div><div class="met-val" style="color:${inad>0?'var(--c-red)':'var(--c-green)'}">${inad}</div></div>
+      </div>
+      <div class="card"><div class="card-title"><i class="ti ti-calendar-month"></i>Recebimento — ${MONTHS[CM]}</div>
+        <div class="tbl-wrap"><table class="tbl">
+          <thead><tr><th>Apartamento</th><th>Esperado</th><th>Recebido</th><th>%</th></tr></thead>
+          <tbody>${State.apts.map(a=>{
+            const r=F.receivedMonth(a,CM,CY), e=F.expectedMonth(a), p=e>0?Math.round(r/e*100):0;
+            return `<tr><td style="width:36%">${a.nome.split(' — ')[0]}</td><td style="width:22%">${F.brl(e)}</td><td style="width:22%">${F.brl(r)}</td><td style="width:20%">${H.badge(p+'%',p===100?'ok':p>0?'warn':'danger')}</td></tr>`;
+          }).join('')}
+          <tr><td>Total</td><td>${F.brl(esp)}</td><td>${F.brl(rec)}</td><td>${H.badge((esp>0?Math.round(rec/esp*100):0)+'%',rec>=esp?'ok':rec>0?'warn':'danger')}</td></tr>
+          </tbody>
+        </table></div>
+      </div>
+      <div class="card"><div class="card-title"><i class="ti ti-shield"></i>Encargos anuais — ${CY}</div>
+        <div class="tbl-wrap"><table class="tbl">
+          <thead><tr><th>Apartamento</th>${CHARGES_ANNUAL.map(c=>`<th>${c.label}</th>`).join('')}</tr></thead>
+          <tbody>${State.apts.map(a=>`<tr><td>${a.nome.split(' — ')[0]}</td>${CHARGES_ANNUAL.map(c=>{if(F.isOff(a,c.id))return`<td>${H.badge('Desativado','off')}</td>`;const p=F.getPag(a,c.id,0,CY);return`<td>${H.badge(p?'Pago':'Pendente',p?'ok':'warn')}</td>`;}).join('')}</tr>`).join('')}
+          </tbody>
+        </table></div>
+      </div>
+      <div class="card"><div class="card-title"><i class="ti ti-receipt-tax"></i>Resumo IR — ${CY}</div>
+        <div class="tbl-wrap"><table class="tbl">
+          <thead><tr><th>Apartamento</th><th>Inquilino</th><th>Recebido</th></tr></thead>
+          <tbody>${State.apts.map(a=>{let s=0;Object.values(a.pags).forEach(p=>s+=+p.val);return`<tr><td>${a.nome.split(' — ')[0]}</td><td>${a.inq}</td><td>${F.brl(s)}</td></tr>`;}).join('')}
+          <tr><td colspan="2">Total ${CY}</td><td>${F.brl(State.apts.reduce((s,a)=>{let t=0;Object.values(a.pags).forEach(p=>t+=+p.val);return s+t;},0))}</td></tr>
+          </tbody>
+        </table></div>
+      </div>`;
+  },
+
+  cnt() {
+    const cfg = State.cntCfg;
+    State.apts.forEach(a => { if (cfg.apts[a.id]===undefined) cfg.apts[a.id]=true; });
+    const secOpts = [
+      { k:'recMensal',      n:'Recebimentos mensais',  d:'Aluguel e encargos por apartamento' },
+      { k:'encargosAnuais', n:'Encargos anuais',        d:'Seguro incêndio e taxa dos bombeiros' },
+      { k:'ir',             n:'Resumo para IR',         d:'Total recebido por imóvel no ano' },
+      { k:'inadimplencia',  n:'Inadimplência',          d:'Pagamentos pendentes no mês' },
+      { k:'reajustes',      n:'Reajustes IPCA',         d:'Histórico de reajustes aplicados' },
+      { k:'rescisoes',      n:'Rescisões',              d:'Saídas de inquilinos e valores cobrados' },
+    ];
+    const canGen = Object.values(cfg.secs).some(v=>v) && State.apts.some(a=>cfg.apts[a.id]!==false);
+    return `<div class="card">
+      <div class="card-title"><i class="ti ti-printer"></i>Relatório para o contador</div>
+      ${H.sec('Período')}
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:4px">
+        <select class="fi" style="width:auto" onchange="State.cntCfg.mes=parseInt(this.value);render()">${MONTHS.map((m,i)=>`<option value="${i}"${cfg.mes===i?' selected':''}>${m}</option>`).join('')}</select>
+        <select class="fi" style="width:auto" onchange="State.cntCfg.ano=parseInt(this.value);render()">${[CY-2,CY-1,CY].map(y=>`<option value="${y}"${cfg.ano===y?' selected':''}>${y}</option>`).join('')}</select>
+      </div>
+      ${H.sec('Apartamentos')}
+      ${State.apts.map(a=>`<div class="row"><div><div style="font-weight:700;font-size:13px">${a.nome}</div><div style="font-size:12px;color:var(--c-text1)">${a.inq}</div></div><label class="tgl"><input type="checkbox" ${cfg.apts[a.id]!==false?'checked':''} onchange="A.setCntApt(${a.id},this.checked)"><span class="tgl-s"></span></label></div>`).join('')}
+      ${H.sec('Seções')}
+      ${secOpts.map(s=>`<div class="row"><div><div style="font-weight:700;font-size:13px">${s.n}</div><div style="font-size:12px;color:var(--c-text1)">${s.d}</div></div><label class="tgl"><input type="checkbox" ${cfg.secs[s.k]?'checked':''} onchange="A.setCntSec('${s.k}',this.checked)"><span class="tgl-s"></span></label></div>`).join('')}
+      <div class="actions" style="margin-top:16px">
+        <button class="btn btn-primary" ${canGen?'':'disabled'} onclick="document.getElementById('cnt-prev').style.display='block';document.getElementById('cnt-code').textContent=A.buildRelText()"><i class="ti ti-eye"></i> Visualizar</button>
+        <button class="btn" ${canGen?'':'disabled'} onclick="navigator.clipboard.writeText(A.buildRelText()).then(()=>toast('Texto copiado!'))"><i class="ti ti-copy"></i> Copiar</button>
+      </div>
+    </div>
+    <div id="cnt-prev" style="display:none"><div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <span style="font-weight:700">Pré-visualização</span>
+        <button class="btn btn-sm" onclick="document.getElementById('cnt-prev').style.display='none'"><i class="ti ti-x"></i></button>
+      </div>
+      <div class="code-box" id="cnt-code"></div>
+    </div></div>`;
+  }
+};
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ROUTER
+// ═══════════════════════════════════════════════════════════════════════════
+function setView(v) {
+  State.view = v;
+  ['dash','apts','hist','rel','cnt'].forEach(x => document.getElementById('nav-'+x)?.classList.toggle('active', x===v));
+  render();
+}
+
+function render() {
+  const map = { dash:V.dash, apts:V.apts, hist:V.hist, rel:V.rel, cnt:V.cnt };
+  const el  = document.getElementById('view-root');
+  if (el) el.innerHTML = (map[State.view]||V.dash)();
+  document.getElementById('hdr-date').textContent = `${MONTHS[CM]} ${CY}`;
+  P.updateDbDot();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════════════════════════════════════
+let _toastTimer;
+function toast(msg='Salvo', ms=2400) {
+  clearTimeout(_toastTimer);
+  const el = document.getElementById('toast');
+  document.getElementById('toast-msg').textContent = msg;
+  el.classList.add('show');
+  _toastTimer = setTimeout(() => el.classList.remove('show'), ms);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SUPABASE MODAL PREFILL
+// ═══════════════════════════════════════════════════════════════════════════
+document.getElementById('m-supa').addEventListener('click', function handler() {
+  document.getElementById('supa-url').value = State.supa.url;
+  document.getElementById('supa-key').value = State.supa.key;
+  this.removeEventListener('click', handler);
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// BOOT
+// ═══════════════════════════════════════════════════════════════════════════
+(async () => {
+  P.load();
+  P.loadSupaConfig();
+  P.updateDbDot();
+  if (State.supa.url && State.supa.key) {
+    await P.supaLoad();
+  }
+  render();
+})();
+</script>
+</body>
+</html>
